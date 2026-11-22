@@ -1,10 +1,18 @@
 # Constrained matching for crime research
 
-A worked example of matching law enforcement agencies before fitting an outcome model. One Jupyter notebook covers the full workflow: load the datasets, clean the records, link treatment information to monthly offense counts, select comparison agencies, and check balance.
+This project demonstrates how to choose comparison law enforcement agencies (LEAs) for a study of reported crime after an agency activates a verified account on Ring's Neighbors platform. The aim is to find agencies with similar characteristics and crime histories that did not activate an account during the observation period. One Jupyter notebook covers the work from separate source files through matching and diagnostics, stopping before an outcome model is fitted.
 
 **All data are synthetic and included.** The example illustrates the matching procedure; it does not reproduce the original study's empirical data or estimated effects.
 
-**[Open the notebook](matching_workflow.ipynb)** to read the explanations, code, results, and figures directly on GitHub. You only need to download the repository if you want to run or change the analysis.
+**[Open the notebook](matching_workflow.ipynb)** to read the explanations, code, results, and figures on GitHub. Download the repository only if you want to run or change the analysis.
+
+## Treatment and comparison agencies
+
+Treatment is **the recorded activation of an LEA's verified Ring Neighbors account**. It is not a measure of household camera ownership or subsequent account use. The synthetic activation table supplies dates; the fictional offense data supply monthly outcomes. We link them using agency information before constructing candidate matches.
+
+Treated agencies activate during 2019–2022. Comparison agencies have **no recorded activation through December 2022**, when the offense panel ends. Some may have a later recorded activation, so “untreated during the study period” is more precise than “never treated.” Each comparison is aligned to its matched treated agency's activation month, without treating that comparison as having activated.
+
+The output includes a pair identifier, agency role, activation month, and `event_month` measured relative to the treated agency's activation. The 24-month preactivation window is `-24` through `-1`; the primary six-month follow-up is `0` through `5`, with `0` denoting the activation month. Both members of a pair share the same relative-time calendar. The notebook also produces `is_treated` and `is_post` flags for later modeling, but it does **not** fit a difference-in-differences model.
 
 ## What the notebook does
 
@@ -12,7 +20,7 @@ A worked example of matching law enforcement agencies before fitting an outcome 
 2. **Clean** agency identifiers and offense records, preserving distinct offenses within an incident.
 3. **Merge** treatment information into a monthly agency panel, keeping missing months separate from documented zeros.
 4. **Match** agencies using geographic and institutional restrictions, population, and 24 months of pretreatment offense levels and trends.
-5. **Check** retention, balance, and monthly histories, then save the matched panels and recheck balance after restricting follow-up.
+5. **Check** retention, balance, and monthly histories, then export the matched panels with treatment-relative time and recheck balance after restricting follow-up.
 
 Candidate pairs must share a state and agency type, have different counties and coordinates, lie within 250 miles, and meet population and standardized-distance limits. The notebook explains the crime-research rationale for each rule. County and coordinate screens reduce overlap risk; actual jurisdiction boundaries and reporting arrangements still need review in a real application.
 
