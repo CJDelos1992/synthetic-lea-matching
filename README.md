@@ -22,7 +22,7 @@ A mixed-integer optimization selects one-to-one pairs separately for each activa
 
 The fixed synthetic inputs produce **1,630 candidate pairs and 79 selected pairs**. The initial matched sample passes all **56 annual balance checks** across raw and transformed characteristics.
 
-Two figures make the diagnostics visible: a before-and-after balance comparison for each activation year, and monthly property-offense histories for the 2019 cohort. The latter shows closer average levels and fitted slopes while retaining the actual monthly fluctuations.
+Two figures make the diagnostics visible: a before-and-after balance comparison for each activation year, and monthly property-offense histories for the 2019 cohort. The latter shows closer average levels and fitted slopes with remaining differences in the monthly paths.
 
 Requiring six months of follow-up leaves **74 pairs**. Removing late activations weakens balance in the remaining 2022 cohort beyond the original limits, so the notebook flags this before model fitting. The initial matching result does not automatically carry over to a later subset.
 
@@ -52,7 +52,7 @@ Restart the kernel and run all cells in order. No separate data download is need
 | `requirements.txt` | Python dependencies |
 | `.gitignore` | Keeps temporary files and generated results out of Git |
 
-Running the notebook creates five CSVs in `outputs/`: the pair list, two matched panels, and two balance tables. They are recreated on each run. There are no separate Python modules or test files.
+Running the notebook creates five CSVs in `outputs/`: the pair list, two matched panels, and two balance tables. They are recreated on each run.
 
 ## Apply the workflow to another study
 
@@ -62,4 +62,4 @@ The notebook's final section describes the prepared agency and monthly-count tab
 
 Delos Santos, C. (2026). *Applied Mathematical Modeling of Risk and Mitigation in the Context of Crime, Digital Policing, and Natural Hazards*. Doctoral dissertation, Arizona State University, Chapter 3, pp. 58–71.
 
-This is a newly written demonstration using invented data. The notebook documents the distinction between its two-pass optimization and the study's weighted objective.
+The notebook documents the distinction between its two-pass optimization and the study's weighted objective.
