@@ -6,6 +6,8 @@ This project demonstrates how to choose comparison law enforcement agencies (LEA
 
 **[Open the notebook](matching_workflow.ipynb)** to read the explanations, code, results, and figures on GitHub. Download the repository only if you want to run or change the analysis.
 
+Researchers working with their own agency data can start with [Adapting the method to another study](#adapting-the-method-to-another-study).
+
 ## Treatment and comparison agencies
 
 Treatment is **the recorded activation of an LEA's verified Ring Neighbors account**. It is not a measure of household camera ownership or subsequent account use. The synthetic activation table supplies dates; the fictional offense data supply monthly outcomes. We link them using agency information before constructing candidate matches.
@@ -62,9 +64,22 @@ Restart the kernel and run all cells in order. No separate data download is need
 
 Running the notebook creates five CSVs in `outputs/`: the pair list, two matched panels, and two balance tables. They are recreated on each run.
 
-## Apply the workflow to another study
+## Adapting the method to another study
 
-The notebook's final section describes the prepared agency and monthly-count tables needed for matching. Real NIBRS data require a complete offense-code mapping, reviewed treatment-to-agency links, and documented reporting conventions. The example's simplified labels and name linkage illustrate those steps.
+The matching procedure can be used to study another agency-level intervention, provided treatment dates and comparable pre-intervention outcomes are available. This repository is **not** a ready-made importer for raw NIBRS files.
+
+Start by replacing the fictional inputs with records for your own study. A treatment table should identify which LEAs adopted the intervention and when; an agency crosswalk should link those records to the IDs used in the offense data (such as NIBRS ORIs). Prepare monthly offense counts using a documented offense-code mapping and preserve the difference between missing reports and reported zeros.
+
+Once the data are cleaned and linked, the matching portion of the notebook uses two tables:
+
+| Table | What it needs |
+| --- | --- |
+| `metadata` | One row per agency with `agency_id`, state, county, agency type, coordinates, population, `activation_month`, and `source_eligible`. An unknown activation date must not be mistaken for no treatment. |
+| `panel` | One row per agency and calendar month with `agency_id`, `month`, the outcome counts (`all`, `person`, `property`, `other`), and `source_present`. |
+
+The code then computes each agency's pretreatment characteristics, constructs eligible candidate pairs, solves the assignment, and reports balance. The final panel includes `pair_id`, `is_treated`, `event_month`, and `is_post`; **event time is calculated from each treated agency's adoption date**, so it does not need to be present in the original offense file.
+
+**Reconsider the restrictions for a new application.** The January 2016–December 2022 source period, 24-month history, 84-month record-presence screen, geographic rules, population cutoff, and balance tolerances belong to this particular design. They should be justified or changed for a different intervention, region, or reporting system. In particular, the same-county restriction reduces possible jurisdictional overlap but cannot replace a review of actual jurisdiction boundaries. After matching, inspect retention and balance again before using the pairs in a treatment-effect model.
 
 ## Research basis
 
