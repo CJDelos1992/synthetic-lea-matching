@@ -1,61 +1,65 @@
 # Constrained matching for crime research
 
-This repository demonstrates how law enforcement agencies can be matched using pretreatment offense histories and **mixed-integer optimization**. One Jupyter notebook covers the full pre-model workflow: link treatment records to agency identifiers, build monthly offense counts, construct eligible pairs, solve the matching problem, and assess balance.
+A worked example of matching law enforcement agencies before fitting an outcome model. One Jupyter notebook covers the full workflow: load the datasets, clean the records, link treatment information to monthly offense counts, select comparison agencies, and check balance.
 
-**All data are synthetic.** The four input tables are included, and the demonstration does not reproduce the original study's empirical results.
+**All data are synthetic and included.** The example illustrates the matching procedure; it does not reproduce the original study's empirical data or estimated effects.
 
-**[Open the notebook](matching_workflow.ipynb)** to read the explanations, Python code, results, and diagnostic figures directly on GitHub. No installation is needed just to read it.
+**[Open the notebook](matching_workflow.ipynb)** to read the explanations, code, results, and figures directly on GitHub. You only need to download the repository if you want to run or change the analysis.
 
-## How the matching works
+## What the notebook does
 
-1. **Prepare and link data.** Reconcile agency identifiers and aggregate fictional NIBRS-style offense records into a monthly panel, preserving the distinction between missing records and observed zeros.
-2. **Build comparable candidates.** Apply geographic, agency-type, population, reporting-history, and standardized-distance restrictions. Both agencies in a potential pair use the same 24 calendar months before the treated agency's activation.
-3. **Solve the assignment problem.** A mixed-integer linear program first maximizes retained one-to-one matches subject to group-balance constraints, then minimizes total standardized distance among equally large solutions. Comparisons can be reused in different activation years.
-4. **Check the result.** Examine retention, raw and transformed balance, selected pair eligibility, and pretreatment histories; then recheck balance after excluding pairs with incomplete follow-up.
+1. **Load** four source tables: agency metadata, treatment dates, offense records, and reporting information.
+2. **Clean** agency identifiers and offense records, preserving distinct offenses within an incident.
+3. **Merge** treatment information into a monthly agency panel, keeping missing months separate from documented zeros.
+4. **Match** agencies using geographic and institutional restrictions, population, and 24 months of pretreatment offense levels and trends.
+5. **Check** retention, balance, and monthly histories, then save the matched panels and recheck balance after restricting follow-up.
 
-The algorithm is implemented in the notebook using SciPy's `milp` interface and the open-source HiGHS solver. Matching features include agency population, average monthly counts in three offense categories, and their fitted pretreatment trends, in raw and transformed forms.
+Candidate pairs must share a state and agency type, have different counties and coordinates, lie within 250 miles, and meet population and standardized-distance limits. The notebook explains the crime-research rationale for each rule. County and coordinate screens reduce overlap risk; actual jurisdiction boundaries and reporting arrangements still need review in a real application.
 
-## Illustrative results
+A mixed-integer optimization selects one-to-one pairs separately for each activation year. It first retains as many pairs as possible under the balance constraints, then minimizes total distance at that pair count. A comparison agency can be reused in another year. The implementation uses SciPy's `milp` interface to HiGHS.
 
-In the fixed synthetic example, 1,630 candidate pairs pass eligibility restrictions, and **79 pairs** are selected. All **56 annual raw/transformed balance checks** pass for the initial matched sample. In the displayed 2019 example, selected groups become closer in average property-offense levels and fitted linear slopes; their monthly observations remain noisy.
+## What the example shows
 
-Restricting the selected sample to pairs with complete six-month follow-up leaves **74 pairs** and weakens balance in the remaining 2022 cohort beyond the original limits. This consequence of filtering after matching is shown explicitly.
+The fixed synthetic inputs produce **1,630 candidate pairs and 79 selected pairs**. The initial matched sample passes all **56 annual balance checks** across raw and transformed characteristics.
 
-These are **computational and descriptive results**, not estimates of a causal treatment effect. Balance on observed histories does not establish the parallel-trends assumption required for a subsequent difference-in-differences analysis. The synthetic inputs are illustrative, not calibrated to empirical NIBRS distributions.
+Two figures make the diagnostics visible: a before-and-after balance comparison for each activation year, and monthly property-offense histories for the 2019 cohort. The latter shows closer average levels and fitted slopes while retaining the actual monthly fluctuations.
 
-## Run locally
+Requiring six months of follow-up leaves **74 pairs**. Removing late activations weakens balance in the remaining 2022 cohort beyond the original limits, so the notebook flags this before model fitting. The initial matching result does not automatically carry over to a later subset.
 
-Download the repository using GitHub's **Code → Download ZIP** option, then extract it. From the project directory, using Python 3.12:
+These are computational and descriptive results. The synthetic data are not calibrated to empirical NIBRS distributions, and balance on observed histories does not establish parallel trends or a causal effect.
+
+## Run the notebook
+
+Download the repository using **Code → Download ZIP** and extract it. From the project directory, using Python 3.12:
 
 ```bash
 python -m pip install -r requirements.txt
 jupyter lab matching_workflow.ipynb
 ```
 
-Restart the notebook kernel and run all cells in order. The data are already included. Each optimization pass has a configurable time limit; if the solver cannot prove optimality within it, the notebook reports that rather than presenting an incumbent as optimal.
+Restart the kernel and run all cells in order. No separate data download is needed; pandas reads the compressed offense file directly. Optimization can take several minutes. Each pass has a configurable time limit, and execution stops if the solver cannot establish an optimal solution.
 
-## Repository contents
+## Files
 
-| Path | Purpose |
+| File | Purpose |
 | --- | --- |
-| `matching_workflow.ipynb` | Data preparation, matching, validation, and figures |
-| `data/crosswalk.csv` | Fictional agency identifiers and metadata |
-| `data/activations.csv` | Fictional agency treatment dates |
-| `data/offenses.csv.xz` | Fictional offense records, compressed |
-| `data/availability.csv` | Reporting flags for differentiating missing months and zeros |
+| `README.md` | Project overview and instructions |
+| `matching_workflow.ipynb` | The complete workflow, with saved results and two figures |
+| `data/crosswalk.csv` | Agency IDs, names, locations, types, and populations |
+| `data/activations.csv` | Agency treatment dates |
+| `data/offenses.csv.xz` | Compressed offense records |
+| `data/availability.csv` | Reporting and verified-zero flags |
 | `requirements.txt` | Python dependencies |
-| `.gitignore` | Excludes temporary and generated files |
+| `.gitignore` | Keeps temporary files and generated results out of Git |
 
-Running the notebook produces selected-pair and matched-panel CSVs in `outputs/`, which is excluded from version control. Saved notebook outputs let readers inspect the main tables and figures without running the code.
+Running the notebook creates five CSVs in `outputs/`: the pair list, two matched panels, and two balance tables. They are recreated on each run. There are no separate Python modules or test files.
 
-## Adapting the workflow
+## Apply the workflow to another study
 
-The notebook's final section documents the prepared `metadata` and monthly `panel` tables needed to apply matching to another study. Actual NIBRS files require their own import, complete offense-code classification, and reviewed treatment-to-ORI linkage. The example's simplified labels and exact normalized-name linkage are demonstrations, not replacements for those steps.
+The notebook's final section describes the prepared agency and monthly-count tables needed for matching. Real NIBRS data require a complete offense-code mapping, reviewed treatment-to-agency links, and documented reporting conventions. The example's simplified labels and name linkage illustrate those steps.
 
 ## Research basis
 
-The matching design is based on Chapter 3 of:
+Delos Santos, C. (2026). *Applied Mathematical Modeling of Risk and Mitigation in the Context of Crime, Digital Policing, and Natural Hazards*. Doctoral dissertation, Arizona State University, Chapter 3, pp. 58–71.
 
-Delos Santos, C. (2026). *Applied Mathematical Modeling of Risk and Mitigation in the Context of Crime, Digital Policing, and Natural Hazards.* PhD dissertation, Arizona State University, pp. 58–71.
-
-This repository contains a newly written demonstration with invented data, not the original empirical dataset or original analysis code.
+This is a newly written demonstration using invented data. The notebook documents the distinction between its two-pass optimization and the study's weighted objective.
