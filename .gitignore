@@ -1,0 +1,7 @@
+# Local working files and results created by the notebook.
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+outputs/
